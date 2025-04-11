@@ -30,7 +30,7 @@ class TS_model(nn.Module):
         self.n_head=n_head
         self.name=name
 
-        self.config = GPT2Config(vocab_size=self.vocab_size,n_positions=self.n_positions,n_embd=self.n_embed,n_layer=self.n_layer,n_head=self.n_head)
+        self.config = GPT2Config(vocab_size=self.vocab_size,n_positions=self.n_positions,n_embd=self.n_embed,n_layer=self.n_layer,n_head=self.n_head, _attn_implementation='flash_attention_2')
         self.gpt = GPT2Model(self.config)
         del self.gpt.wpe
         self.gpt.wpe = functools.partial(null_position_embeddings, dim=self.n_embed)
