@@ -397,10 +397,13 @@ class GST(nn.Module):
 if __name__ == '__main__':
     device = torch.device('cpu')
     m = GST(512,10).to(device)
-    mels = torch.rand((16,80,1000)).to(device)
 
-    o = m(mels)
-    print(o.shape,'final output')
+    print(m)
 
-    from torchinfo import summary
-    summary(m, input_data={'x': torch.randn(16,80,500).to(device)})
+    # mels = torch.rand((16,80,1000)).to(device)
+
+    # o = m(mels)
+    # print(o.shape,'final output')
+
+    # from torchinfo import summary
+    # summary(m, input_data={'x': torch.randn(16,80,500).to(device)})

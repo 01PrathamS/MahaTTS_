@@ -12,6 +12,9 @@ from torch.nn.utils import weight_norm, remove_weight_norm, spectral_norm
 
 LRELU_SLOPE = 0.1
 
+
+# aa code che dubverse no .
+
 class AttrDict(dict):
     def __init__(self, *args, **kwargs):
         super(AttrDict, self).__init__(*args, **kwargs)
@@ -31,6 +34,9 @@ def apply_weight_norm(m):
 
 def get_padding(kernel_size, dilation=1):
     return int((kernel_size*dilation - dilation)/2)
+
+
+# aatla sudhino code che dubverse valo.
 
 
 class ResBlock1(torch.nn.Module):
@@ -305,6 +311,9 @@ def generator_loss(disc_outputs):
         loss += l
 
     return loss, gen_losses
+
+
+## aayathi code lakhelo che dubverse no.
 
 def load_checkpoint(filepath, device):
     assert os.path.isfile(filepath)

@@ -134,7 +134,7 @@ def generate_semantic_tokens(
     n_tot_steps = 1000,
     device = None
     ):
-    semb = []
+    semb = [] # this may be sementic buffer
     with torch.no_grad():
         for n in tqdm(range(n_tot_steps)):
             x = get_inputs(text,semb,ref_mels,device,model.name)
@@ -172,7 +172,7 @@ def generate_semantic_tokens(
 def get_inputs(text,semb=[],ref_mels=[],device=torch.device('cpu'),name = 'Smolie-in'):
   text = text.lower()
   if name=='Smolie-en':
-    text_ids=[text_enc_en['<S>']]+[text_enc_en[i] for i in text.strip()]+[text_enc_en['<E>']]
+    text_ids=[text_enc_en['<S>']]+[text_enc_en[i] for i in text.strip()]+[text_enc_en['<E>']] # this is works character by character
   else:
     text_ids=[text_enc['<S>']]+[text_enc[i] for i in text.strip()]+[text_enc['<E>']]
     
@@ -203,7 +203,6 @@ def get_mel(filepath):
     audio_norm = audio / config.MAX_WAV_VALUE
     audio_norm = audio_norm.unsqueeze(0)
     y = torch.autograd.Variable(audio_norm, requires_grad=False)
-
     assert(torch.min(y.data) >= -1)
     assert(torch.max(y.data) <= 1)
     magnitudes, phases = stft_fn.transform(y)
@@ -244,9 +243,9 @@ def infer_tts(text,ref_clips,diffuser,diff_model,ts_model,vocoder,language=None)
     assert(len(ref_clips) > 0)
     device = next(ts_model.parameters()).device
     text = english_cleaners(text)
-    ref_mels = get_ref_mels(ref_clips)
+    ref_mels = get_ref_mels(ref_clips) ## (1, 4, 80, 500) => (1, num_of_ref_clips, mel_bins, mel_length)
     with torch.no_grad():
-        sem_tok,_ = generate_semantic_tokens(
+        sem_tok,_ = generate_semantic_tokens(    # output_for_this: semantic_buffer, result =  torch.Size([999]) torch.Size([1, 10004, 1000])  => (number_of_steps, [1, semantic_model_centroids, number_of_steps])
                         text,
                         ts_model,
                         ref_mels,
@@ -257,10 +256,14 @@ def infer_tts(text,ref_clips,diffuser,diff_model,ts_model,vocoder,language=None)
                         n_tot_steps = 1000,
                         device = device
                     )
+        # this code if for converting semantic tokens (codewords/codebook) -> acoustic tokens
+        # and then consctuct mel spectorgram
         mel = infer_mel(diff_model,int(((sem_tok.shape[-1] * 320 / 16000) * 22050/256)+1),sem_tok.unsqueeze(0) + 1,
-                        normalize_tacotron_mel(ref_mels),diffuser,temperature=0.5)
+                        normalize_tacotron_mel(ref_mels),diffuser,temperature=0.5)   
+        
+        
 
-        audio = infer_wav(mel,vocoder)
+        audio = infer_wav(mel,vocoder)  # mel spectorgram -> vocoder -> audio_waveform
     
     return audio,config.sampling_rate
 

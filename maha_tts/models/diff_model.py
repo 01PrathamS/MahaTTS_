@@ -1,6 +1,12 @@
 '''
 inspiration taken from https://github.com/neonbjb/tortoise-tts/blob/main/tortoise/models/diffusion_decoder.py
 '''
+
+import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+
+
 import sys
 import torch
 import torch.nn as nn
@@ -299,6 +305,12 @@ def load_diff_model(checkpoint,device,model_channels=512,ar_active=False,len_cod
 
 if __name__ == '__main__':
 
+    import time 
+
+    start_time = time.time()
+
+    print("hello world")
+
     device = torch.device('cpu')
     diff_model = DiffModel(input_channels=80,
                  output_channels=160,
@@ -318,3 +330,6 @@ if __name__ == '__main__':
     'ref_clips': torch.randn(batch_Size,3, 80, timeseries).to(device),
     't':torch.LongTensor(size=[batch_Size,]).to(device),
     'code_emb':torch.randint(0,201,(batch_Size,timeseries)).to(device)})
+
+
+    print(f"time_taken:{time.time()-start_time} seconds")
