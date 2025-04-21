@@ -21,7 +21,12 @@ import functools
 
 from typing import Any
 from torch.utils.data import Dataset,DataLoader
-from transformers import GPT2Tokenizer,GPT2Config, GPT2Model, GPT2LMHeadModel
+
+## let's change this to vllm implementation
+from transformers import GPT2Config, GPT2Model
+#from vllm.vllm.model_executor.models.gpt2 import GPT2Model
+
+
 from tqdm import tqdm
 from maha_tts.config import config
 from maha_tts.text.symbols import labels,code_labels,text_labels,text_labels_en
@@ -42,7 +47,14 @@ class TS_model(nn.Module):
         self.name=name  ## Smolie-en
 
         self.config = GPT2Config(vocab_size=self.vocab_size,n_positions=self.n_positions,n_embd=self.n_embed,n_layer=self.n_layer,n_head=self.n_head)
-        self.gpt = GPT2Model(self.config)
+        # self.gpt = GPT2Model(self.config)
+
+        self.gpt = GPT2Model(self.config) ## vllm implementation
+
+
+        
+
+
         del self.gpt.wpe
         self.gpt.wpe = functools.partial(null_position_embeddings, dim=self.n_embed) ## null position embeddings no upyog aaya thayelo che.
         # Built-in token embeddings are unused.
@@ -123,8 +135,14 @@ class TS_model(nn.Module):
         else:
             embed = torch.cat([speaker_embed,text_embed],dim=1)
         
-        gpt_output = self.gpt(inputs_embeds=embed, return_dict=True) # pass through GPT-2 model and returns contextual embeddings for each input token
-        enc = gpt_output.last_hidden_state[:, 1:] ## this removes speaker token embedding
+        #gpt_output = self.gpt(inputs_embeds=embed, return_dict=True) # pass through GPT-2 model and returns contextual embeddings for each input token
+        #enc = gpt_output.last_hidden_state[:, 1:] ## this removes speaker token embedding
+
+## let's change this from standard transformers gpt2 implementation to vllm gpt2 implementation
+
+        gpt_output = self.gpt(inputs_embeds=embed) # pass through GPT-2 model and returns contextual embeddings for each input token
+        enc = gpt_output[:, 1:] # kem k vllm na implementation ma direct hidden_states aave che.
+
         enc = self.final_norm(enc)
 
         #  split the output into the text and code parts
